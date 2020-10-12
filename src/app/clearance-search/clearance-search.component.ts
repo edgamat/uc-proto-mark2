@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { InsuredResult } from './insured-result.model';
 import { InsuredService, SearchCriteria } from './insured-search.service';
+import { SessionStore } from './session.store';
 
 @Component({
   selector: 'app-clearance-search',
   templateUrl: './clearance-search.component.html',
   styleUrls: ['./clearance-search.component.scss'],
 })
-export class ClearanceSearchComponent implements OnInit {
+export class ClearanceSearchComponent implements OnInit, OnDestroy {
   showResults = false;
   showNoResultsMessage = false;
   showTooManyResultsMessage = false;
@@ -21,17 +23,38 @@ export class ClearanceSearchComponent implements OnInit {
   clearanceRecords: InsuredResult[] = [];
   formattedAddress = '';
   options = {};
+  sub: Subscription;
 
   constructor(
     private clearanceService: InsuredService,
     private router: Router,
-    private formBuilder: FormBuilder) { }
+    private route: ActivatedRoute,
+    private formBuilder: FormBuilder,
+    private sessionStore: SessionStore) { }
 
   ngOnInit(): void {
     this.searchForm = this.formBuilder.group({
       insuredName: ['', [Validators.required]],
       dbaName: '',
     });
+
+    this.sub = this.sessionStore.state$.subscribe(state => {
+      this.searchForm.patchValue(
+        {
+          insuredName: state.criteria.insuredName,
+          dbaName: state.criteria.dbaName
+         });
+
+      if (!this.searching && state.criteria.insuredName !== '') {
+        this.onSearchClick();
+      }
+    });
+}
+
+  ngOnDestroy(): void {
+    if (this.sub) {
+      this.sub.unsubscribe();
+    }
   }
 
   onSearchClick(): void {
@@ -39,6 +62,8 @@ export class ClearanceSearchComponent implements OnInit {
     this.searching = true;
 
     const criteria: SearchCriteria = { ...this.searchForm.value };
+
+    this.sessionStore.setCriteria(criteria);
 
     this.clearanceService.searchRecords(criteria).subscribe({
       next: products => {
@@ -76,5 +101,6 @@ export class ClearanceSearchComponent implements OnInit {
 
   onContinue(): void {
     console.log('continue');
+    this.router.navigate(['create-submission'], { relativeTo: this.route });
   }
 }

@@ -8,16 +8,19 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { InsuredData } from './insured-data';
+import { SessionStore } from './session.store';
+import { CreateSubmissionComponent } from './create-submission/create-submission.component';
 
 @NgModule({
-  declarations: [ClearanceSearchComponent],
+  declarations: [ClearanceSearchComponent, CreateSubmissionComponent],
   imports: [
     CommonModule,
     ClearanceSearchRoutingModule,
     ReactiveFormsModule,
     HttpClientModule,
     InMemoryWebApiModule.forRoot(InsuredData),
-    NgxLoadingModule.forRoot({})],
-
+    NgxLoadingModule.forRoot({})
+  ],
+  providers: [SessionStore]
 })
 export class ClearanceSearchModule {}

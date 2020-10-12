@@ -88,7 +88,7 @@
 </div>
 
 <div class="mt-3 text-center" *ngIf="showContinueOptions">
-  <button type="button" class="btn btn-success">New Submission</button>
+  <button type="button" class="btn btn-success" (click)="onContinue()">New Submission</button>
 </div>
 
 <ngx-loading [show]="searching" [config]="{ backdropBorderRadius: '3px' }"></ngx-loading>
